@@ -1,0 +1,20 @@
+FROM gradle:jdk8 AS build
+MAINTAINER Segyan
+#RUN addgroup -S segyan && adduser -S segyan -G segyan
+#USER segyan:segyan
+WORKDIR /home/gradle/src
+#COPY --chown=segyan:segyan . ${WORKDIR}
+COPY . ${WORKDIR}
+RUN ls -al
+RUN gradle build --no-daemon
+
+
+FROM openjdk:8-jdk-alpine
+RUN addgroup -S segyan && adduser -S segyan -G segyan
+USER segyan:segyan
+WORKDIR /workspace/app
+EXPOSE 8080
+ARG JAR_FILE=/home/gradle/src/build/libs/*.jar
+RUN ls -al
+COPY --from=0 ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "app.jar"]
